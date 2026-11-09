@@ -822,6 +822,7 @@ Flickable {
 
                         stepSize: 500
                         from : 500
+                        // The locked maximum must match StreamingPreferences::reload()
                         to: prefs.unlockBitrate ? 500000 : 150000
 
                         snapMode: "SnapOnRelease"

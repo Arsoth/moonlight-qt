@@ -316,6 +316,27 @@ private slots:
         QCOMPARE(load(HOST_A)->enableYUV444, true);
     }
 
+    // A host's bitrate follows the inherited bitrate limit without losing its override
+    void bitrateLimitAppliesToInheritedOverrides()
+    {
+        setGlobal("unlockbitrate", true);
+        setHostSetting(HOST_A, "bitrateKbps", 400000);
+        QCOMPARE(load(HOST_A)->bitrateKbps, 400000);
+
+        // Locking the global limit caps the host to the slider maximum
+        setGlobal("unlockbitrate", false);
+        PrefsPtr editor = edit(HOST_A);
+        QCOMPARE(editor->bitrateKbps, 150000);
+
+        // Viewing the host doesn't overwrite its stored bitrate
+        editor->save();
+        QCOMPARE(QSettings().value("hostsettings/" + HOST_A + "/bitrate").toInt(), 400000);
+
+        // Unlocking again restores the host's own bitrate
+        setGlobal("unlockbitrate", true);
+        QCOMPARE(load(HOST_A)->bitrateKbps, 400000);
+    }
+
     // App-wide settings are never stored or resolved per host
     void appWideSettingsAreNotHostScoped()
     {

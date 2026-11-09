@@ -357,6 +357,12 @@ void StreamingPreferences::reload()
         enableHdr = true;
     }
 
+    // Keep the bitrate within the settings page's limit. A host can inherit a
+    // locked limit while overriding the bitrate above it.
+    if (!unlockBitrate) {
+        bitrateKbps = qMin(bitrateKbps, 150000);
+    }
+
     m_LoadedValues = serialize();
 }
 
