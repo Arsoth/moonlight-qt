@@ -1,0 +1,53 @@
+name: Problem with per-host settings
+description: Something in the per-host settings test builds doesn't work as expected
+title: "[Problem] "
+labels: [per-host-bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        For problems with the per-host settings test builds only. Check the [test plan](https://github.com/Arsoth/moonlight-qt/wiki/Test-Plan) for what is expected.
+  - type: input
+    id: commit
+    attributes:
+      label: Build commit
+      description: Shown at the top of the [download page](https://github.com/Arsoth/moonlight-qt/releases/tag/per-host-settings-latest)
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      options:
+        - macOS
+        - Windows 10
+        - Windows 11
+        - Windows on ARM
+        - CachyOS
+        - Steam Deck (Flatpak)
+        - Other Linux
+    validations:
+      required: true
+  - type: input
+    id: test
+    attributes:
+      label: Test step
+      placeholder: e.g. T11 step 3, or "not from the test plan"
+  - type: textarea
+    id: steps
+    attributes:
+      label: What did you do?
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: extra
+    attributes:
+      label: Screenshots, logs, stored settings
+      description: |
+        Screenshots help. The stored host settings come from the check command in [Install, step 3](https://github.com/Arsoth/moonlight-qt/wiki/Install#3-see-what-is-stored).

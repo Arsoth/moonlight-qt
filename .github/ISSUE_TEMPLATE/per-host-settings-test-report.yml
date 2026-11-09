@@ -1,0 +1,256 @@
+name: Test report (per-host settings)
+description: Results of the per-host settings test plan on one platform
+title: "[Test report] <platform>"
+labels: [test-report]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for testing! Follow the [test plan](https://github.com/Arsoth/moonlight-qt/wiki/Test-Plan) and file one report per platform.
+        Found a problem? You can also file it on its own with the [problem form](https://github.com/Arsoth/moonlight-qt/issues/new?template=per-host-settings-problem.yml).
+  - type: input
+    id: commit
+    attributes:
+      label: Build commit
+      description: Shown at the top of the [download page](https://github.com/Arsoth/moonlight-qt/releases/tag/per-host-settings-latest), e.g. 549133bf
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      options:
+        - macOS
+        - Windows 10
+        - Windows 11
+        - Windows on ARM
+        - CachyOS
+        - Steam Deck (Flatpak)
+        - Other Linux
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: OS version and hardware
+      placeholder: e.g. macOS 26.1, M2 MacBook Air
+  - type: input
+    id: hosts
+    attributes:
+      label: Hosts used
+      placeholder: e.g. Host W = Apollo 0.4 on Windows 11, Host L = Sunshine 2026.x on Arch
+  - type: input
+    id: controller
+    attributes:
+      label: Controller used for the gamepad tests
+      placeholder: e.g. Xbox One (Bluetooth), Steam Deck built-in
+  - type: dropdown
+    id: t1
+    attributes:
+      label: T1 First look
+      options:
+        - Not tested
+        - Pass
+        - Fail
+        - Not applicable
+      default: 0
+  - type: dropdown
+    id: t2
+    attributes:
+      label: T2 Global settings
+      options:
+        - Not tested
+        - Pass
+        - Fail
+        - Not applicable
+      default: 0
+  - type: dropdown
+    id: t3
+    attributes:
+      label: T3 Selecting a host writes nothing
+      options:
+        - Not tested
+        - Pass
+        - Fail
+        - Not applicable
+      default: 0
+  - type: dropdown
+    id: t4
+    attributes:
+      label: T4 Host W setup and bold
+      options:
+        - Not tested
+        - Pass
+        - Fail
+        - Not applicable
+      default: 0
+  - type: dropdown
+    id: t5
+    attributes:
+      label: T5 Host L setup
+      options:
+        - Not tested
+        - Pass
+        - Fail
+        - Not applicable
+      default: 0
+  - type: dropdown
+    id: t6
+    attributes:
+      label: T6 Hosts stay separate
+      options:
+        - Not tested
+        - Pass
+        - Fail
+        - Not applicable
+      default: 0
+  - type: dropdown
+    id: t7
+    attributes:
+      label: T7 Back to global removes the override
+      options:
+        - Not tested
+        - Pass
+        - Fail
+        - Not applicable
+      default: 0
+  - type: dropdown
+    id: t8
+    attributes:
+      label: T8 Inheritance
+      options:
+        - Not tested
+        - Pass
+        - Fail
+        - Not applicable
+      default: 0
+  - type: dropdown
+    id: t9
+    attributes:
+      label: T9 Restart
+      options:
+        - Not tested
+        - Pass
+        - Fail
+        - Not applicable
+      default: 0
+  - type: dropdown
+    id: t10
+    attributes:
+      label: T10 Long host names
+      options:
+        - Not tested
+        - Pass
+        - Fail
+        - Not applicable
+      default: 0
+  - type: dropdown
+    id: t17
+    attributes:
+      label: T17 Open from the computer list
+      options:
+        - Not tested
+        - Pass
+        - Fail
+        - Not applicable
+      default: 0
+  - type: dropdown
+    id: t18
+    attributes:
+      label: T18 Bitrate limit is inherited
+      options:
+        - Not tested
+        - Pass
+        - Fail
+        - Not applicable
+      default: 0
+  - type: dropdown
+    id: t11
+    attributes:
+      label: T11 Stream Host W
+      options:
+        - Not tested
+        - Pass
+        - Fail
+        - Not applicable
+      default: 0
+  - type: dropdown
+    id: t12
+    attributes:
+      label: T12 Stream Host L
+      options:
+        - Not tested
+        - Pass
+        - Fail
+        - Not applicable
+      default: 0
+  - type: dropdown
+    id: t13
+    attributes:
+      label: T13 Input settings per host
+      options:
+        - Not tested
+        - Pass
+        - Fail
+        - Not applicable
+      default: 0
+  - type: dropdown
+    id: t14
+    attributes:
+      label: T14 Settings after a stream
+      options:
+        - Not tested
+        - Pass
+        - Fail
+        - Not applicable
+      default: 0
+  - type: dropdown
+    id: t15
+    attributes:
+      label: T15 Command line
+      options:
+        - Not tested
+        - Pass
+        - Fail
+        - Not applicable
+      default: 0
+  - type: dropdown
+    id: t16
+    attributes:
+      label: T16 Reset to Defaults
+      options:
+        - Not tested
+        - Pass
+        - Fail
+        - Not applicable
+      default: 0
+  - type: dropdown
+    id: g1
+    attributes:
+      label: G1-G5 Gamepad
+      options:
+        - Not tested
+        - Pass
+        - Fail
+        - Not applicable
+      default: 0
+  - type: dropdown
+    id: rollback
+    attributes:
+      label: Rollback to stock Moonlight
+      options:
+        - Not tested
+        - Pass
+        - Fail
+        - Not applicable
+      default: 0
+  - type: textarea
+    id: failures
+    attributes:
+      label: Failures and notes
+      description: For every Fail, say which step and what happened instead.
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: Drag and drop the screenshots marked 📸 in the test plan.

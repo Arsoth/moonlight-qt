@@ -1,1 +1,5 @@
 blank_issues_enabled: false
+contact_links:
+  - name: Other Moonlight problems
+    url: https://github.com/moonlight-stream/moonlight-qt/issues
+    about: This fork's issues are only for the per-host settings test builds. Report anything else to Moonlight.
