@@ -66,6 +66,12 @@ public:
     QVector<NvAddress>
     uniqueAddresses() const;
 
+    // Whether the host has its own streaming settings. Offline hosts have an
+    // unknown pair state, so a pinned certificate from a past pairing counts.
+    // Caller must hold the lock.
+    bool
+    hasStreamingSettings() const;
+
     void
     serialize(QSettings& settings, bool serializeApps) const;
 

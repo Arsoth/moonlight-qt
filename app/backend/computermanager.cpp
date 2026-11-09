@@ -504,10 +504,7 @@ QVariantList ComputerManager::getPairedHosts()
     for (NvComputer* computer : getComputers()) {
         QReadLocker lock(&computer->lock);
 
-        // Offline hosts have an unknown pair state, so also include
-        // those with a pinned server certificate from a past pairing.
-        if (computer->pairState == NvComputer::PS_PAIRED ||
-                (computer->pairState == NvComputer::PS_UNKNOWN && !computer->serverCert.isNull())) {
+        if (computer->hasStreamingSettings()) {
             pairedHosts.append(QVariantMap {
                 { "name", computer->name },
                 { "uuid", computer->uuid },

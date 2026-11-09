@@ -42,6 +42,10 @@ QVariant ComputerModel::data(const QModelIndex& index, int role) const
         return computer->state == NvComputer::CS_UNKNOWN;
     case ServerSupportedRole:
         return computer->isSupportedServerVersion;
+    case UuidRole:
+        return computer->uuid;
+    case HasStreamingSettingsRole:
+        return computer->hasStreamingSettings();
     case DetailsRole: {
         QString state, pairState;
 
@@ -110,6 +114,8 @@ QHash<int, QByteArray> ComputerModel::roleNames() const
     names[StatusUnknownRole] = "statusUnknown";
     names[ServerSupportedRole] = "serverSupported";
     names[DetailsRole] = "details";
+    names[UuidRole] = "uuid";
+    names[HasStreamingSettingsRole] = "hasStreamingSettings";
 
     return names;
 }

@@ -187,6 +187,11 @@ CenteredGridView {
                     visible: model.online && model.paired
                 }
                 NavigableMenuItem {
+                    text: qsTr("Streaming Settings")
+                    onTriggered: stackView.push("qrc:/gui/SettingsView.qml", {"hostUuid": model.uuid})
+                    visible: model.hasStreamingSettings
+                }
+                NavigableMenuItem {
                     text: qsTr("Wake PC")
                     onTriggered: computerModel.wakeComputer(index)
                     visible: !model.online && model.wakeable

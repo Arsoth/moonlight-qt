@@ -105,6 +105,11 @@ void NvComputer::serialize(QSettings& settings, bool serializeApps) const
     }
 }
 
+bool NvComputer::hasStreamingSettings() const
+{
+    return pairState == PS_PAIRED || (pairState == PS_UNKNOWN && !serverCert.isNull());
+}
+
 bool NvComputer::isEqualSerialized(const NvComputer &that) const
 {
     return this->name == that.name &&

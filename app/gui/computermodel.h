@@ -16,7 +16,9 @@ class ComputerModel : public QAbstractListModel
         WakeableRole,
         StatusUnknownRole,
         ServerSupportedRole,
-        DetailsRole
+        DetailsRole,
+        UuidRole,
+        HasStreamingSettingsRole
     };
 
 public:
