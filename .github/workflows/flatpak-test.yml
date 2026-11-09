@@ -1,0 +1,25 @@
+# Test-only: builds a Flatpak of the per-host-settings commit with Flathub's
+# manifest (flathub/com.moonlight_stream.Moonlight @ 50797df4), changing only
+# the moonlight-qt source.
+name: Flatpak test build
+permissions:
+  contents: read
+
+on:
+  push:
+    branches:
+      - flatpak-test
+
+jobs:
+  flatpak:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/flathub-infra/flatpak-github-actions:kde-6.11
+      options: --privileged
+    steps:
+      - uses: actions/checkout@v4
+      - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+        with:
+          bundle: Moonlight-per-host-settings.flatpak
+          manifest-path: flatpak/com.moonlight_stream.Moonlight.json
+          artifact-name: Moonlight-per-host-settings-flatpak
