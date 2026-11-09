@@ -28,6 +28,9 @@ Flickable {
         return overriddenSettings.indexOf(property) !== -1
     }
 
+    // Read once so the host selector's visibility is known when the page is laid out
+    readonly property var pairedHosts: ComputerManager.getPairedHosts()
+
     // Set when this page replaced another one to show different settings
     property bool reloaded: false
 
@@ -95,14 +98,24 @@ Flickable {
         }
     }
 
+    // Building this page refreshes the display list, which can process window
+    // events and draw frames before every control is initialized (seen on macOS).
+    // Keep the content transparent until the page is complete so a half-built
+    // page is never drawn over the previous one. Opacity is used instead of
+    // visible because some controls skip initialization while not visible.
+    property bool pageReady: false
+    StackView.onActivating: pageReady = true
+
     StackView.onActivated: {
         // This enables Tab and BackTab based navigation rather than arrow keys.
         // It is required to shift focus between controls on the settings page.
         SdlGamepadKeyNavigation.setUiNavMode(true)
 
-        // Keep the focus on the host selector after switching hosts
+        // Keep the focus on the host selector after switching hosts. This is
+        // deferred because main.qml focuses the page itself after an immediate
+        // replace, which happens after this handler.
         if (reloaded) {
-            hostScopeComboBox.forceActiveFocus(Qt.TabFocus)
+            Qt.callLater(function() { hostScopeComboBox.forceActiveFocus(Qt.TabFocus) })
         }
         // Highlight the first item if a gamepad is connected
         else if (SdlGamepadKeyNavigation.getConnectedGamepads() > 0) {
@@ -124,6 +137,7 @@ Flickable {
     }
 
     Column {
+        opacity: pageReady ? 1 : 0
         padding: 10
         id: settingsColumn1
         width: settingsPage.width / 2
@@ -136,8 +150,9 @@ Flickable {
             title: "<font color=\"skyblue\">" + qsTr("Settings for") + "</font>"
             font.pointSize: 12
 
-            // Only offer host settings once a host has been paired
-            visible: hostScopeListModel.count > 1
+            // Only offer host settings once a host has been paired. This must not
+            // depend on the list below, which is filled after the page is laid out.
+            visible: pairedHosts.length > 0 || !editingGlobalSettings
 
             Column {
                 anchors.fill: parent
@@ -170,10 +185,9 @@ Flickable {
                             hostScopeListModel.append({ "text": qsTr("Default (Global)"), "uuid": "" })
                             currentIndex = 0
 
-                            var hosts = ComputerManager.getPairedHosts()
-                            for (var i = 0; i < hosts.length; i++) {
-                                hostScopeListModel.append({ "text": hosts[i].name, "uuid": hosts[i].uuid })
-                                if (hosts[i].uuid === hostUuid) {
+                            for (var i = 0; i < pairedHosts.length; i++) {
+                                hostScopeListModel.append({ "text": pairedHosts[i].name, "uuid": pairedHosts[i].uuid })
+                                if (pairedHosts[i].uuid === hostUuid) {
                                     currentIndex = i + 1
                                 }
                             }
@@ -1460,6 +1474,7 @@ Flickable {
     }
 
     Column {
+        opacity: pageReady ? 1 : 0
         padding: 10
         rightPadding: 20
         anchors.left: settingsColumn1.right
