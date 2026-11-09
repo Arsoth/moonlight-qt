@@ -1,0 +1,105 @@
+# Fork-only: publishes the latest per-host-settings builds (all platforms and a
+# Flatpak) to a rolling pre-release, so testers always have one fresh link:
+# https://github.com/Arsoth/moonlight-qt/releases/tag/per-host-settings-latest
+name: Per-host settings test release
+permissions:
+  contents: write
+  actions: read
+
+on:
+  workflow_run:
+    workflows: [Build]
+    types: [completed]
+    branches: [per-host-settings]
+  workflow_dispatch:
+
+concurrency:
+  group: per-host-settings-release
+  cancel-in-progress: true
+
+env:
+  BRANCH: per-host-settings
+  TAG: per-host-settings-latest
+
+jobs:
+  resolve:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    outputs:
+      sha: ${{ steps.find.outputs.sha }}
+      build_run: ${{ steps.find.outputs.build_run }}
+    steps:
+      - id: find
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT_SHA: ${{ github.event.workflow_run.head_sha }}
+          EVENT_RUN: ${{ github.event.workflow_run.id }}
+        run: |
+          if [ -n "$EVENT_SHA" ]; then
+            sha="$EVENT_SHA"; run="$EVENT_RUN"
+          else
+            sha=$(gh api "repos/$GITHUB_REPOSITORY/branches/$BRANCH" --jq .commit.sha)
+            run=$(gh run list -R "$GITHUB_REPOSITORY" --workflow build.yml --limit 50 \
+                    --json databaseId,headSha,conclusion \
+                    --jq "first(.[] | select(.headSha == \"$sha\" and .conclusion == \"success\")) | .databaseId")
+          fi
+          if [ -z "$run" ]; then echo "No successful Build run for $sha"; exit 1; fi
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          echo "build_run=$run" >> "$GITHUB_OUTPUT"
+
+  flatpak:
+    needs: resolve
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/flathub-infra/flatpak-github-actions:kde-6.11
+      options: --privileged
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the per-host-settings commit
+        run: sed -i "s/@COMMIT@/${{ needs.resolve.outputs.sha }}/" .github/per-host-settings/flatpak/com.moonlight_stream.Moonlight.json
+      - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+        with:
+          bundle: Moonlight-SteamDeck-Linux.flatpak
+          manifest-path: .github/per-host-settings/flatpak/com.moonlight_stream.Moonlight.json
+          artifact-name: flatpak
+
+  release:
+    needs: [resolve, flatpak]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: flatpak
+          path: out
+      - name: Collect the builds
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download "${{ needs.resolve.outputs.build_run }}" -R "$GITHUB_REPOSITORY" -D dl \
+            -p 'Moonlight-macOS-*' -p 'Moonlight-Windows-*' -p 'Moonlight-LinuxAppImage-*'
+          cp dl/Moonlight-macOS-*/*.dmg out/Moonlight-macOS.dmg
+          cp dl/Moonlight-LinuxAppImage-*/*.AppImage out/Moonlight-Linux-x86_64.AppImage
+          for arch in x64 arm64; do
+            mv dl/Moonlight-Windows-$arch-* "Moonlight-Windows-$arch"
+            zip -qr "out/Moonlight-Windows-$arch.zip" "Moonlight-Windows-$arch"
+          done
+          (cd out && sha256sum * > SHA256SUMS.txt)
+          ls -l out
+      - name: Replace the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ needs.resolve.outputs.sha }}
+        run: |
+          gh release delete "$TAG" -R "$GITHUB_REPOSITORY" --cleanup-tag -y || true
+          cat > notes.md <<NOTES
+          Test builds of the per-host streaming settings branch. Unsigned, not an official Moonlight release.
+
+          Commit: [\`${SHA:0:8}\`](https://github.com/$GITHUB_REPOSITORY/commit/$SHA) on \`$BRANCH\`, built $(date -u '+%Y-%m-%d %H:%M UTC').
+
+          - macOS: \`Moonlight-macOS.dmg\`
+          - Windows 10/11: \`Moonlight-Windows-x64.zip\` (Windows on ARM: \`Moonlight-Windows-arm64.zip\`)
+          - CachyOS and other Linux: \`Moonlight-Linux-x86_64.AppImage\`
+          - Steam Deck: \`Moonlight-SteamDeck-Linux.flatpak\` (replaces the Flathub Moonlight, keeps settings): \`flatpak install --user --reinstall ./Moonlight-SteamDeck-Linux.flatpak\`
+          NOTES
+          gh release create "$TAG" -R "$GITHUB_REPOSITORY" --target "$SHA" --prerelease \
+            --title "Per-host settings test build (${SHA:0:8})" --notes-file notes.md out/*
