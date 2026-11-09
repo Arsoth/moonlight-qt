@@ -64,9 +64,13 @@ public:
     QString getHost() const;
     QString getAppName() const;
 
+    // Whether to start from the host's saved settings instead of the global ones
+    bool getUseHostSettings() const;
+
 private:
     QString m_Host;
     QString m_AppName;
+    bool m_UseHostSettings;
     QMap<QString, StreamingPreferences::WindowMode> m_WindowModeMap;
     QMap<QString, StreamingPreferences::AudioConfig> m_AudioConfigMap;
     QMap<QString, StreamingPreferences::VideoCodecConfig> m_VideoCodecMap;

@@ -227,6 +227,9 @@ public:
 
     Q_INVOKABLE void addNewHostManually(QString address);
 
+    // Returns the name and UUID of each paired host, sorted by name
+    Q_INVOKABLE QVariantList getPairedHosts();
+
     void addNewHost(NvAddress address, bool mdns, QString name = QString(), NvAddress mdnsIpv6Address = NvAddress());
 
     QString generatePinString();

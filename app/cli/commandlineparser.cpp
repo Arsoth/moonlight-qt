@@ -294,6 +294,7 @@ QString PairCommandLineParser::getPredefinedPin() const
 }
 
 StreamCommandLineParser::StreamCommandLineParser()
+    : m_UseHostSettings(true)
 {
     m_WindowModeMap = {
         {"fullscreen", StreamingPreferences::WM_FULLSCREEN},
@@ -333,7 +334,9 @@ void StreamCommandLineParser::parse(const QStringList &args, StreamingPreference
     parser.setupCommonOptions();
     parser.setApplicationDescription(
         "\n"
-        "Starts directly streaming a given app."
+        "Starts directly streaming a given app.\n"
+        "Uses the host's saved streaming settings, or the global settings with --no-host-settings.\n"
+        "Other options override those settings for this stream only."
     );
     parser.addPositionalArgument("stream", "Start stream");
 
@@ -346,6 +349,7 @@ void StreamCommandLineParser::parse(const QStringList &args, StreamingPreference
     parser.addFlagOption("1440", "2560x1440 resolution");
     parser.addFlagOption("4K", "3840x2160 resolution");
     parser.addValueOption("resolution", "custom <width>x<height> resolution");
+    parser.addToggleOption("host-settings", "per-host streaming settings");
     parser.addToggleOption("vsync", "V-Sync");
     parser.addValueOption("fps", "FPS");
     parser.addValueOption("bitrate", "bitrate in Kbps");
@@ -434,6 +438,9 @@ void StreamCommandLineParser::parse(const QStringList &args, StreamingPreference
     if (parser.isSet("display-mode")) {
         preferences->windowMode = mapValue(m_WindowModeMap, parser.getChoiceOptionValue("display-mode"));
     }
+
+    // Resolve --host-settings and --no-host-settings options
+    m_UseHostSettings = parser.getToggleOptionValue("host-settings", true);
 
     // Resolve --vsync and --no-vsync options
     preferences->enableVsync = parser.getToggleOptionValue("vsync", preferences->enableVsync);
@@ -531,6 +538,11 @@ QString StreamCommandLineParser::getHost() const
 QString StreamCommandLineParser::getAppName() const
 {
     return m_AppName;
+}
+
+bool StreamCommandLineParser::getUseHostSettings() const
+{
+    return m_UseHostSettings;
 }
 
 ListCommandLineParser::ListCommandLineParser()

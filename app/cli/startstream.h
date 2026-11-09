@@ -6,7 +6,6 @@
 class ComputerManager;
 class NvComputer;
 class Session;
-class StreamingPreferences;
 
 namespace CliStartStream
 {
@@ -21,7 +20,7 @@ class Launcher : public QObject
 
 public:
     explicit Launcher(QString computer, QString app,
-                      StreamingPreferences* preferences,
+                      bool useHostSettings,
                       QObject *parent = nullptr);
     ~Launcher();
     Q_INVOKABLE void execute(ComputerManager *manager);

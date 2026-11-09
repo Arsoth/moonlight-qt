@@ -3,6 +3,8 @@
 #include <QObject>
 #include <QRect>
 #include <QQmlEngine>
+#include <QSet>
+#include <QVariantMap>
 
 class StreamingPreferences : public QObject
 {
@@ -10,6 +12,18 @@ class StreamingPreferences : public QObject
 
 public:
     static StreamingPreferences* get(QQmlEngine *qmlEngine = nullptr);
+
+    // Creates an object holding the effective settings for a host: the global
+    // settings with that host's overrides applied. An empty UUID yields the
+    // global settings. Don't save() it; use createHostEditor() to edit a host.
+    static StreamingPreferences* forHost(const QString& hostUuid, QObject* parent = nullptr);
+
+    // Like forHost(), but save() stores changed settings as the host's overrides.
+    // QML takes ownership of the returned object.
+    Q_INVOKABLE static StreamingPreferences* createHostEditor(const QString& hostUuid);
+
+    // Deletes all streaming settings overrides for a host
+    static void removeHostOverrides(const QString& hostUuid);
 
     Q_INVOKABLE static int
     getDefaultBitrate(int width, int height, int fps, bool yuv444);
@@ -158,7 +172,16 @@ public:
     Q_PROPERTY(CaptureSysKeysMode captureSysKeysMode MEMBER captureSysKeysMode NOTIFY captureSysKeysModeChanged)
     Q_PROPERTY(Language language MEMBER language NOTIFY languageChanged);
 
+    // Names of the properties this host overrides, including unsaved changes
+    Q_PROPERTY(QStringList overriddenSettings READ overriddenSettings NOTIFY overriddenSettingsChanged)
+
     Q_INVOKABLE bool retranslate();
+
+    // Deletes this host's overrides and reloads its settings without emitting
+    // the settings' change signals, so the settings page must be recreated
+    Q_INVOKABLE void resetHostOverrides();
+
+    QStringList overriddenSettings() const;
 
     // Directly accessible members for preferences
     int width;
@@ -238,12 +261,25 @@ signals:
     void keepAwakeChanged();
     void languageChanged();
     void rendererSelectionChanged();
+    void overriddenSettingsChanged();
 
 private:
-    explicit StreamingPreferences(QQmlEngine *qmlEngine);
+    explicit StreamingPreferences(QQmlEngine *qmlEngine, const QString& hostUuid = QString(), QObject* parent = nullptr);
 
     QString getSuffixFromLanguage(Language lang);
 
+    QVariantMap serialize() const;
+    QVariantMap pendingHostOverrides() const;
+
     QQmlEngine* m_QmlEngine;
+
+    QString m_HostUuid;
+
+    // Taken when the settings were last loaded or saved, so that save()
+    // can tell user changes apart from inherited values. m_GlobalValues
+    // is only set for host editors.
+    QVariantMap m_LoadedValues;
+    QVariantMap m_GlobalValues;
+    QSet<QString> m_OverriddenKeys;
 };
 

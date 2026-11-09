@@ -497,6 +497,27 @@ QVector<NvComputer*> ComputerManager::getComputers()
     return hosts;
 }
 
+QVariantList ComputerManager::getPairedHosts()
+{
+    QVariantList pairedHosts;
+
+    for (NvComputer* computer : getComputers()) {
+        QReadLocker lock(&computer->lock);
+
+        // Offline hosts have an unknown pair state, so also include
+        // those with a pinned server certificate from a past pairing.
+        if (computer->pairState == NvComputer::PS_PAIRED ||
+                (computer->pairState == NvComputer::PS_UNKNOWN && !computer->serverCert.isNull())) {
+            pairedHosts.append(QVariantMap {
+                { "name", computer->name },
+                { "uuid", computer->uuid },
+            });
+        }
+    }
+
+    return pairedHosts;
+}
+
 class DeferredHostDeletionTask : public QRunnable
 {
 public:
@@ -526,6 +547,9 @@ public:
 
         // Delete cached box art
         BoxArtManager::deleteBoxArt(m_Computer);
+
+        // Delete the host's streaming settings overrides
+        StreamingPreferences::removeHostOverrides(m_Computer->uuid);
 
         // Finally, delete the computer itself. This must be done
         // last because the polling thread might be using it.

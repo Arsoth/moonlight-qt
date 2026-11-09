@@ -1003,12 +1003,13 @@ int main(int argc, char *argv[])
     case GlobalCommandLineParser::StreamRequested:
         {
             initialView = "qrc:/gui/CliStartStreamSegue.qml";
+            // The launcher applies the options again once the host is found
             StreamingPreferences* preferences = StreamingPreferences::get();
             StreamCommandLineParser streamParser;
             streamParser.parse(app.arguments(), preferences);
             QString host    = streamParser.getHost();
             QString appName = streamParser.getAppName();
-            auto launcher   = new CliStartStream::Launcher(host, appName, preferences, &app);
+            auto launcher   = new CliStartStream::Launcher(host, appName, streamParser.getUseHostSettings(), &app);
             engine.rootContext()->setContextProperty("launcher", launcher);
             break;
         }

@@ -2,6 +2,8 @@
 #include "backend/computermanager.h"
 #include "backend/computerseeker.h"
 #include "streaming/session.h"
+#include "cli/commandlineparser.h"
+#include "settings/streamingpreferences.h"
 
 #include <QCoreApplication>
 #include <QTimer>
@@ -102,7 +104,11 @@ public:
                     m_TimeoutTimer->stop();
                     if (isNotStreaming() || isStreamingApp(app)) {
                         m_State = StateStartSession;
-                        session = new Session(m_Computer, app, m_Preferences);
+                        // Apply the command line options on top of the host's or the global settings
+                        StreamingPreferences* preferences =
+                                StreamingPreferences::forHost(m_UseHostSettings ? m_Computer->uuid : QString(), q);
+                        StreamCommandLineParser().parse(QCoreApplication::arguments(), preferences);
+                        session = new Session(m_Computer, app, preferences);
                         emit q->sessionCreated(app.name, session);
                     } else {
                         emit q->appQuitRequired(getCurrentAppName());
@@ -173,7 +179,7 @@ public:
     Launcher *q_ptr;
     QString m_ComputerName;
     QString m_AppName;
-    StreamingPreferences *m_Preferences;
+    bool m_UseHostSettings;
     ComputerManager *m_ComputerManager;
     ComputerSeeker *m_ComputerSeeker;
     NvComputer *m_Computer;
@@ -182,14 +188,14 @@ public:
 };
 
 Launcher::Launcher(QString computer, QString app,
-                   StreamingPreferences* preferences, QObject *parent)
+                   bool useHostSettings, QObject *parent)
     : QObject(parent),
       m_DPtr(new LauncherPrivate(this))
 {
     Q_D(Launcher);
     d->m_ComputerName = computer;
     d->m_AppName = app;
-    d->m_Preferences = preferences;
+    d->m_UseHostSettings = useHostSettings;
     d->m_State = StateInit;
     d->m_TimeoutTimer = new QTimer(this);
     d->m_TimeoutTimer->setSingleShot(true);
