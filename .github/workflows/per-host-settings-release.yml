@@ -13,8 +13,10 @@ on:
     branches: [per-host-settings]
   workflow_dispatch:
 
+# Runs triggered by a failed or cancelled Build are skipped. They get their own
+# group so they don't cancel a release that is being published.
 concurrency:
-  group: per-host-settings-release
+  group: per-host-settings-release-${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
   cancel-in-progress: true
 
 env:
